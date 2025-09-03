@@ -1,0 +1,189 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Land {
+  id              String       @id @default(cuid())
+  title           String
+  slug            String       @unique
+  overview        String       @db.Text
+  location        String
+  state           String
+  country         String       @default("Nigeria")
+  
+  // Images
+  images          Image[]      @relation("LandImages")// Array of image URLs
+  
+  // Units and Pricing
+  units           LandUnit[]
+  
+  // Status and metadata
+  status          LandStatus   @default(FOR_SALE)
+  
+  // Reviews
+  reviews         Review[]     @relation("LandReviews")
+  averageRating   Float?
+  totalReviews    Int          @default(0)
+
+  favorites       Favorite[]   
+  
+  // SEO and metadata
+  metaTitle       String?
+  metaDescription String?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@map("lands")
+}
+
+model House {
+  id              String       @id @default(cuid())
+  title           String
+  slug            String       @unique
+  overview        String       @db.Text
+  location        String
+  state           String
+  country         String       @default("Nigeria")
+  price           String       // Can be range or specific price
+
+  category        HouseCategory @default(FINISHED_HOMES)
+ 
+  // Polymorphic relations
+  images          Image[]      @relation("HouseImages")
+  reviews         Review[]     @relation("HouseReviews")
+  averageRating   Float?
+  totalReviews    Int          @default(0)
+
+  //units
+  units           HouseUnit[]
+
+  // SEO and metadata
+  metaTitle       String?
+  metaDescription String?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@map("houses")
+}
+
+model LandUnit {
+  id          String   @id @default(cuid())
+  size        Int      // Size in sqm
+  unit        String   @default("sqm")
+  price       String  
+  available   Boolean  @default(true)
+  
+  landId      String
+  land        Land     @relation(fields: [landId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("land_units")
+}
+
+model HouseUnit {
+  id          String   @id @default(cuid())
+  size        Int      // Size in sqm
+  unit        String   @default("sqm")
+  price       String  
+  available   Boolean  @default(true)
+  
+  houseId      String
+  house        House     @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("house_units")
+}
+
+
+model Review {
+  id          String       @id @default(cuid())
+  name        String
+  email       String
+  rating      Int          // 1-5 stars
+  comment     String       @db.Text
+  status      ReviewStatus @default(PENDING)
+  isVerified  Boolean      @default(false)
+  
+  landId    String?
+  houseId   String?
+  
+  land        Land?         @relation("LandReviews", fields: [landId], references: [id], onDelete: Cascade)
+  house       House?        @relation("HouseReviews", fields: [houseId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@map("reviews")
+}
+
+enum LandStatus {
+  FOR_SALE
+  SOLD
+  PENDING
+  OFF_MARKET
+  COMING_SOON
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum HouseCategory {
+  FINISHED_HOMES
+  OFF_PLAN_HOMES
+}
+
+model Favorite {
+  id          String   @id @default(cuid())
+  sessionId   String   // Browser session identifier
+  userAgent   String?  // Browser info for additional tracking
+  
+  landId      String
+  land        Land     @relation(fields: [landId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([sessionId, landId]) // Prevent duplicate favorites per session
+  @@map("favorites")
+}
+
+
+model Image {
+  id          String   @id @default(cuid())  
+  url         String                         
+  publicId    String                         
+  caption     String?                        
+  isPrimary   Boolean  @default(false)       
+  order       Int      @default(0)     
+
+  landId      String?
+  houseId     String?
+                        
+  land        Land?     @relation("LandImages", fields: [landId], references: [id], onDelete: Cascade)
+  house       House?    @relation("HouseImages", fields: [houseId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())       
+  updatedAt   DateTime @updatedAt            
+  
+  @@map("images")                      
+}
