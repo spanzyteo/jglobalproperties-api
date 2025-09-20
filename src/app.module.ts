@@ -8,6 +8,10 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { HousesModule } from './houses/houses.module';
+import { BlogsModule } from './blogs/blogs.module';
+import { CategoriesModule } from './categories/categories.module';
+import { TagsModule } from './tags/tags.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +23,10 @@ import { HousesModule } from './houses/houses.module';
     CloudinaryModule,
     ReviewsModule,
     HousesModule,
+    BlogsModule,
+    CategoriesModule,
+    TagsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

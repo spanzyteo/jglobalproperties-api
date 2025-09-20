@@ -14,6 +14,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("users")
+}
+
 model Land {
   id              String       @id @default(cuid())
   title           String
@@ -178,12 +190,125 @@ model Image {
 
   landId      String?
   houseId     String?
+  blogId      String?
                         
   land        Land?     @relation("LandImages", fields: [landId], references: [id], onDelete: Cascade)
   house       House?    @relation("HouseImages", fields: [houseId], references: [id], onDelete: Cascade)
+  blog        Blog?     @relation("blogImages", fields: [blogId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime @default(now())       
   updatedAt   DateTime @updatedAt            
   
   @@map("images")                      
+}
+
+//Blogs
+model BlogCategory {
+  id            String       @id @default(cuid())
+  name          String       @unique
+  slug          String       @unique
+  description   String?
+  
+  //Relations
+  blogs       Blog[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("blog_categories")
+}
+
+model BlogTag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  
+  // Relations
+  blogs     BlogTagOnBlog[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("blog_tags")
+}
+
+model Blog {
+  id              String       @id @default(cuid())
+  title           String
+  slug            String       @unique
+  excerpt         String?      @db.Text
+  content         String       @db.Text
+  
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  
+  // Publishing
+  status          BlogStatus   @default(DRAFT)
+  
+  // Reading stats
+  viewCount       Int          @default(0)
+  readTimeMinutes Int?         // Estimated reading time
+  
+  // Category
+  categoryId      String
+  category        BlogCategory @relation(fields: [categoryId], references: [id])
+  
+  // Relations
+  tags            BlogTagOnBlog[]
+  comments        BlogComment[]
+  images          Image[]       @relation("blogImages")
+  
+  // Analytics
+  totalComments   Int          @default(0)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  @@map("blogs")
+}
+
+// Junction table for many-to-many relationship between blogs and tags
+model BlogTagOnBlog {
+  id     String  @id @default(cuid())
+  blogId String
+  tagId  String
+  
+  blog   Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  tag    BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([blogId, tagId])
+  @@map("blog_tags_on_blogs")
+}
+
+model BlogComment {
+  id          String            @id @default(cuid())
+  name        String
+  email       String
+  comment     String            @db.Text
+  status      BlogCommentStatus @default(PENDING)
+  isVerified  Boolean           @default(false)
+  
+  // Blog relation
+  blogId      String
+  blog        Blog              @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@map("blog_comments")
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+enum BlogCommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
 }
