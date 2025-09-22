@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   ConflictException,
@@ -5,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupDto, SignInDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
@@ -16,7 +18,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signUp(signupDto: SignupDto) {
+  async signUp(signupDto: SignupDto, res: Response) {
     const { name, email, password } = signupDto;
 
     // Check if user already exists
@@ -56,6 +58,8 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     const access_token = await this.jwtService.signAsync(payload);
 
+    this.setAuthCookies(res, access_token, user);
+
     return {
       access_token,
       user,
@@ -63,7 +67,7 @@ export class AuthService {
     };
   }
 
-  async signIn(signInDto: SignInDto) {
+  async signIn(signInDto: SignInDto, res: Response) {
     const { email, password } = signInDto;
 
     // Find user
@@ -85,6 +89,9 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     const access_token = await this.jwtService.signAsync(payload);
 
+    //Set HTTP-only cookies
+    this.setAuthCookies(res, access_token, user);
+
     return {
       access_token,
       user: {
@@ -94,6 +101,71 @@ export class AuthService {
       },
       message: 'Signed in successfully',
     };
+  }
+
+  logout(res: Response) {
+    // Clear all authentication cookies
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    res.clearCookie('user_id', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    res.clearCookie('user_email', {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    res.clearCookie('user_name', {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    res.clearCookie('is_authenticated', {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    return {
+      message: 'Logged out successfully',
+    };
+  }
+
+  private setAuthCookies(res: Response, access_token: string, user: any) {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/',
+    };
+
+    const publicCookieOptions = {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/',
+    };
+
+    // Set HTTP-only cookies (secure, cannot be accessed by JavaScript)
+    res.cookie('access_token', access_token, cookieOptions);
+    res.cookie('user_id', user.id, cookieOptions);
+
+    // Set public cookies (can be accessed by frontend JavaScript for UI purposes)
+    res.cookie('user_email', user.email, publicCookieOptions);
+    res.cookie('user_name', user.name, publicCookieOptions);
+    res.cookie('is_authenticated', 'true', publicCookieOptions);
   }
 
   async validateUser(userId: string) {

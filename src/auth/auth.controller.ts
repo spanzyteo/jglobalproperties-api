@@ -5,12 +5,14 @@ import {
   Body,
   UseGuards,
   Request,
+  Res,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto, SignupDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { Response as ExpressResponse } from 'express';
 
 interface AuthenticatedUser {
   id: string;
@@ -27,14 +29,26 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto) {
-    return this.authService.signUp(signupDto);
+  async signup(
+    @Body() signupDto: SignupDto,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return this.authService.signUp(signupDto, res);
   }
 
   @Post('signin')
   @HttpCode(HttpStatus.OK)
-  async signin(@Body() signinDto: SignInDto) {
-    return this.authService.signIn(signinDto);
+  async signIn(
+    @Body() signInDto: SignInDto,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return this.authService.signIn(signInDto, res);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: ExpressResponse) {
+    return this.authService.logout(res);
   }
 
   @Get('profile')
