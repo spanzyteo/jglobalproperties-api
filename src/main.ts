@@ -20,7 +20,11 @@ async function bootstrap() {
 
   // Enable CORS with credentials for cookies
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Add your frontend URLs
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://jglobalproperties.vercel.app',
+    ], // Add your frontend URLs
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
