@@ -6,7 +6,7 @@ import {
   IsNumber,
   IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { LandStatus } from '../../../generated/prisma';
 
 export class createLandImageDto {
@@ -25,6 +25,7 @@ export class createLandImageDto {
 
 export class CreateLandUnitDto {
   @IsNumber()
+  @Transform(({ value }) => parseFloat(String(value)))
   size: number;
 
   @IsString()
