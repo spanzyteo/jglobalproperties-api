@@ -19,10 +19,12 @@ export class ImageDetailDto {
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   isPrimary?: boolean;
 
   @IsOptional()
   @IsInt()
+  @Transform(({ value }) => parseFloat(String(value)))
   order?: number;
 }
 

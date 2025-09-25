@@ -16,10 +16,12 @@ export class createLandImageDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   isPrimary?: boolean;
 
   @IsNumber()
   @IsOptional()
+  @Transform(({ value }) => parseFloat(String(value)))
   order?: number;
 }
 
