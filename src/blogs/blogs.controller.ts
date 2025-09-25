@@ -102,4 +102,10 @@ export class BlogsController {
   ) {
     return this.blogsService.getBlogComments(blogId, query);
   }
+
+  @Get(':id/admin')
+  @HttpCode(HttpStatus.OK)
+  async findOneAdmin(@Param('id') id: string) {
+    return this.blogsService.findOneAdmin(id);
+  }
 }

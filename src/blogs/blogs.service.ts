@@ -365,6 +365,41 @@ export class BlogsService {
     };
   }
 
+  async findOneAdmin(id: string) {
+    const blog = await this.prisma.blog.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        tags: {
+          include: { tag: true },
+        },
+        images: {
+          orderBy: { order: 'asc' },
+        },
+        _count: {
+          select: {
+            comments: true,
+          },
+        },
+      },
+    });
+
+    if (!blog) {
+      throw new NotFoundException('Blog not found');
+    }
+
+    // Increment view count
+    await this.prisma.blog.update({
+      where: { id: blog.id },
+      data: { viewCount: { increment: 1 } },
+    });
+
+    return {
+      success: true,
+      data: blog,
+    };
+  }
+
   async findBySlug(slug: string) {
     const blog = await this.prisma.blog.findUnique({
       where: { slug, status: BlogStatus.PUBLISHED },
