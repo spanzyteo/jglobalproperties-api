@@ -4,12 +4,10 @@ import {
   IsOptional,
   IsArray,
   IsEnum,
-  IsInt,
-  Min,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { BlogStatus } from 'generated/prisma';
 import { ImageDetailDto } from 'src/houses/dto/create-house.dto';
 
@@ -18,10 +16,6 @@ export class CreateBlogDto {
   @IsNotEmpty()
   @MaxLength(200)
   title: string;
-
-  @IsString()
-  @IsNotEmpty()
-  slug: string;
 
   @IsOptional()
   @IsString()
@@ -45,12 +39,6 @@ export class CreateBlogDto {
   @IsEnum(BlogStatus)
   @IsOptional()
   status?: BlogStatus;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Transform(({ value }) => parseInt(value, 10))
-  readTimeMinutes?: number;
 
   @IsString()
   @IsNotEmpty()

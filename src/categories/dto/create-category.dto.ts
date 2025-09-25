@@ -5,10 +5,6 @@ export class CreateCategoryDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  slug: string;
-
   @IsOptional()
   @IsString()
   description?: string;

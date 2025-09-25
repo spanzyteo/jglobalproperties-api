@@ -28,7 +28,7 @@ export class QueryBlogDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: string = 'publishedAt';
+  sortBy?: string = 'createdAt';
 
   @IsOptional()
   @IsString()

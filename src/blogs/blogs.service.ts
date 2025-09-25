@@ -153,7 +153,7 @@ export class BlogsService {
       status,
       page = '1',
       limit = '10',
-      sortBy = 'publishedAt',
+      sortBy = 'createdAt',
       sortOrder = 'desc',
       featured,
     } = query;
