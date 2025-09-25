@@ -43,6 +43,12 @@ export class BlogsController {
     return this.blogsService.findAll(query);
   }
 
+  @Get('admin')
+  @HttpCode(HttpStatus.OK)
+  async findAllAdmin(@Query() query: QueryBlogDto) {
+    return this.blogsService.findAllAdmin(query);
+  }
+
   @Get('featured')
   @HttpCode(HttpStatus.OK)
   async getFeatured(@Query('limit') limit?: string) {

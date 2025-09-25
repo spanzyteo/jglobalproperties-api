@@ -134,7 +134,7 @@ export class BlogsService {
 
       return {
         success: true,
-        message: 'house created successfully',
+        message: 'blog created successfully',
         data: blog,
       };
     } catch (error) {
@@ -168,6 +168,98 @@ export class BlogsService {
     } else {
       where.status = BlogStatus.PUBLISHED; // Default to published
     }
+
+    // Filter by category
+    if (categoryId) where.categoryId = categoryId;
+
+    // Filter by tag
+    if (tagId) {
+      where.tags = {
+        some: {
+          tagId: tagId,
+        },
+      };
+    }
+
+    // Search functionality
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { excerpt: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Featured filter (blogs with high view count or specific criteria)
+    if (featured === 'true') {
+      where.viewCount = { gte: 50 }; // Example: blogs with 100+ views
+    }
+
+    const [blogs, total] = await Promise.all([
+      this.prisma.blog.findMany({
+        where,
+        include: {
+          category: true,
+          tags: {
+            include: { tag: true },
+          },
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+          _count: {
+            select: {
+              comments: true,
+            },
+          },
+        },
+        orderBy: { [sortBy]: sortOrder },
+        skip,
+        take,
+      }),
+      this.prisma.blog.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / take);
+
+    return {
+      success: true,
+      data: {
+        blogs,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalItems: total,
+          itemsPerPage: take,
+          hasNext: parseInt(page) < totalPages,
+          hasPrevious: parseInt(page) > 1,
+        },
+      },
+    };
+  }
+
+  async findAllAdmin(query: QueryBlogDto) {
+    const {
+      search,
+      categoryId,
+      tagId,
+      page = '1',
+      limit = '10',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      featured,
+    } = query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    const where: any = {};
+    // // Filter by status (published by default for public)
+    // if (status) {
+    //   where.status = status;
+    // } else {
+    //   where.status = BlogStatus.PUBLISHED; // Default to published
+    // }
 
     // Filter by category
     if (categoryId) where.categoryId = categoryId;
