@@ -36,6 +36,7 @@ export class CreateLandUnitDto {
   price: string;
 
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   available: boolean;
 }
 

@@ -9,7 +9,7 @@ import {
   ValidateNested,
   IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { HouseCategory } from '../../../generated/prisma';
 
 export class ImageDetailDto {
@@ -28,6 +28,7 @@ export class ImageDetailDto {
 
 export class CreateHouseUnitDto {
   @IsNumber()
+  @Transform(({ value }) => parseFloat(String(value)))
   size: number;
 
   @IsString()
@@ -36,6 +37,10 @@ export class CreateHouseUnitDto {
 
   @IsString()
   price: string;
+
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  available: boolean;
 }
 
 export class CreateHouseDto {
