@@ -34,6 +34,9 @@ export class CreateLandUnitDto {
 
   @IsString()
   price: string;
+
+  @IsBoolean()
+  available: boolean;
 }
 
 export class CreateLandDto {
