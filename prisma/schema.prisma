@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -191,15 +190,33 @@ model Image {
   landId      String?
   houseId     String?
   blogId      String?
+  eventId     String?
                         
   land        Land?     @relation("LandImages", fields: [landId], references: [id], onDelete: Cascade)
   house       House?    @relation("HouseImages", fields: [houseId], references: [id], onDelete: Cascade)
   blog        Blog?     @relation("blogImages", fields: [blogId], references: [id], onDelete: Cascade)
+  event      Event?     @relation("eventImages", fields: [eventId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime @default(now())       
   updatedAt   DateTime @updatedAt            
   
   @@map("images")                      
+}
+
+model Event {
+  id             String        @id @default(cuid())
+  title          String
+  description    String
+  location       String
+  date           DateTime
+  organizer      String
+  image          Image[]         @relation("eventImages")
+  isPast         Boolean
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("events")
 }
 
 //Blogs

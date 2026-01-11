@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsEnum } from 'class-validator';
-import { ReviewStatus } from '../../../generated/prisma';
+import { ReviewStatus } from '@prisma/client';
 
 export class QueryReviewDto {
   @IsOptional()

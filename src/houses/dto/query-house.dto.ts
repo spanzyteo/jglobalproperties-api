@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsEnum } from 'class-validator';
-import { HouseCategory } from 'generated/prisma';
+import { HouseCategory } from '@prisma/client';
 
 export class QueryHouseDto {
   @IsOptional()

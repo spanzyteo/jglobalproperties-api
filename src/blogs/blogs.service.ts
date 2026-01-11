@@ -10,7 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { QueryBlogDto } from './dto/query-blog.dto';
-import { BlogCommentStatus, BlogStatus } from 'generated/prisma';
+import { BlogCommentStatus, BlogStatus } from '@prisma/client';
 import {
   CloudinaryService,
   UploadedImage,

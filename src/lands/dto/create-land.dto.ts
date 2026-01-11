@@ -7,7 +7,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { LandStatus } from '../../../generated/prisma';
+import { LandStatus } from '@prisma/client';
 
 export class createLandImageDto {
   @IsString()

@@ -1,22 +1,27 @@
-import { IsOptional, IsString, IsEnum } from 'class-validator';
-import { BlogStatus } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsDateString, IsOptional, IsString } from 'class-validator';
 
-export class QueryBlogDto {
+export class QueryEventDto {
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isPast?: boolean;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
+
   @IsOptional()
   @IsString()
   search?: string;
 
   @IsOptional()
   @IsString()
-  categoryId?: string;
+  organizer?: string;
 
   @IsOptional()
-  @IsString()
-  tagId?: string;
-
-  @IsOptional()
-  @IsEnum(BlogStatus)
-  status?: BlogStatus;
+  @IsDateString()
+  date?: string;
 
   @IsOptional()
   @IsString()
@@ -33,8 +38,4 @@ export class QueryBlogDto {
   @IsOptional()
   @IsString()
   sortOrder?: 'asc' | 'desc' = 'desc';
-
-  @IsOptional()
-  @IsString()
-  featured?: string; // 'true' | 'false'
 }

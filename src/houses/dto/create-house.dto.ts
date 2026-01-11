@@ -10,7 +10,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { HouseCategory } from '../../../generated/prisma';
+import { HouseCategory } from '@prisma/client';
 
 export class ImageDetailDto {
   @IsOptional()

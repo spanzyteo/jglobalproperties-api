@@ -6,7 +6,7 @@ import {
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { BlogCommentStatus, BlogStatus } from 'generated/prisma';
+import { BlogCommentStatus, BlogStatus } from '@prisma/client';
 
 @Injectable()
 export class CategoriesService {

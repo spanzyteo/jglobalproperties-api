@@ -9,7 +9,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { QueryReviewDto } from './dto/query-review.dto';
-import { ReviewStatus } from '../../generated/prisma';
+import { ReviewStatus } from '@prisma/client';
 
 @Injectable()
 export class ReviewsService {

@@ -16,7 +16,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { QueryReviewDto } from './dto/query-review.dto';
 import { BulkActionReviewDto } from './dto/bulk-action-review.dto';
-import { ReviewStatus } from '../../generated/prisma';
+import { ReviewStatus } from '@prisma/client';
 
 @Controller('reviews')
 export class ReviewsController {

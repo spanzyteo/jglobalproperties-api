@@ -8,7 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BlogStatus } from 'generated/prisma';
+import { BlogStatus } from '@prisma/client';
 import { ImageDetailDto } from 'src/houses/dto/create-house.dto';
 
 export class CreateBlogDto {

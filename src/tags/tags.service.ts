@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { BlogCommentStatus, BlogStatus } from 'generated/prisma';
+import { BlogCommentStatus, BlogStatus } from '@prisma/client';
 
 @Injectable()
 export class TagsService {

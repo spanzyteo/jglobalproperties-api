@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { BlogCommentStatus } from 'generated/prisma';
+import { BlogCommentStatus } from '@prisma/client';
 
 export class CreateBlogCommentDto {
   @IsString()

@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsEnum, IsNumberString } from 'class-validator';
-import { LandStatus } from '../../../generated/prisma';
+import { LandStatus } from '@prisma/client';
 
 export class QueryLandDto {
   @IsOptional()
