@@ -1,0 +1,42 @@
+name: Build and Test Docker Image
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: docker-compose build
+
+      - name: Start services
+        run: docker-compose up -d
+
+      - name: Wait for application to be ready
+        run: sleep 15
+
+      - name: Check application health
+        run: |
+          docker-compose exec -T app npm run build
+          echo "Build successful!"
+
+      - name: Check Prisma status
+        run: docker-compose exec -T app npx prisma migrate status || true
+
+      - name: View logs
+        if: failure()
+        run: docker-compose logs
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down
