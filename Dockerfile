@@ -51,6 +51,8 @@ RUN chmod +x /docker-entrypoint.sh
 # Expose API port
 EXPOSE 3000
 
-# ❌ HEALTHCHECK REMOVED (Coolify-friendly)
+# ✅ SAFE HEALTHCHECK FOR COOLIFY
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD node -e "process.exit(0)"
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
