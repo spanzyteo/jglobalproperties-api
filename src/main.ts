@@ -24,6 +24,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:3001',
       'https://jglobalproperties.vercel.app',
+      'https://jglobalproperties.com',
     ], // Add your frontend URLs
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
