@@ -1,5 +1,7 @@
 # Deployment Configuration Summary
 
+# Deployment Configuration Summary
+
 ## Files Created for Docker & Coolify Deployment
 
 ### 1. **Dockerfile** 
