@@ -17,7 +17,7 @@ echo "✓ DATABASE_URL is set"
 echo "✓ Running Prisma migrations..."
 
 # Run Prisma migrations
-npx prisma migrate deploy
+npx prisma migrate deploy --config=prisma.config.ts
 
 echo "✓ Migrations completed"
 echo "✓ Starting NestJS application..."
