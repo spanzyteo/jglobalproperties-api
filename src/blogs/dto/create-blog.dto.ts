@@ -19,7 +19,6 @@ export class CreateBlogDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(300)
   excerpt?: string;
 
   @IsString()
