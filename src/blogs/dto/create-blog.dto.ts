@@ -14,7 +14,6 @@ import { ImageDetailDto } from 'src/houses/dto/create-house.dto';
 export class CreateBlogDto {
   @IsString()
   @IsNotEmpty()
-  @MaxLength(200)
   title: string;
 
   @IsOptional()
@@ -27,12 +26,10 @@ export class CreateBlogDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(200)
   metaTitle?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(600)
   metaDescription?: string;
 
   @IsEnum(BlogStatus)
