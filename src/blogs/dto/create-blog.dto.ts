@@ -27,12 +27,12 @@ export class CreateBlogDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(60)
+  @MaxLength(200)
   metaTitle?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(160)
+  @MaxLength(600)
   metaDescription?: string;
 
   @IsEnum(BlogStatus)
