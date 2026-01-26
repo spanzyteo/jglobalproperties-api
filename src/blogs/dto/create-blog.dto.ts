@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsArray,
   IsEnum,
-  MaxLength,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "media" ALTER COLUMN "width" DROP NOT NULL,
+ALTER COLUMN "height" DROP NOT NULL;

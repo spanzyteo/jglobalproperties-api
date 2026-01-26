@@ -49,8 +49,8 @@ export class MediaService {
       id: media.id,
       url: media.url,
       alt: media.alt ?? undefined,
-      width: media.width,
-      height: media.height,
+      width: media.width ?? undefined,
+      height: media.height ?? undefined,
     };
   }
 

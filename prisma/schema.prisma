@@ -323,8 +323,8 @@ model Media {
   filename    String
   mimetype    String
   size        Int
-  width       Int
-  height      Int
+  width       Int?
+  height      Int?
   alt         String?
   caption     String?
   createdAt   DateTime @default(now())
