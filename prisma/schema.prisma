@@ -316,6 +316,22 @@ model BlogComment {
   @@map("blog_comments")
 }
 
+model Media {
+  id          String        @id @default(cuid())
+  url         String
+  publicId    String        @unique
+  filename    String
+  mimetype    String
+  size        Int
+  width       Int
+  height      Int
+  alt         String?
+  caption     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("media")
+}
+
 enum BlogStatus {
   DRAFT
   PUBLISHED

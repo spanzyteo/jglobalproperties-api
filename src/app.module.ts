@@ -13,6 +13,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { TagsModule } from './tags/tags.module';
 import { AuthModule } from './auth/auth.module';
 import { EventsModule } from './events/events.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { EventsModule } from './events/events.module';
     TagsModule,
     AuthModule,
     EventsModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
