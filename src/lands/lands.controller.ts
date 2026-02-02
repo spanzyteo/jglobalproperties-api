@@ -48,7 +48,7 @@ export class LandsController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('images', 10))
+  @UseInterceptors(FilesInterceptor('image', 50))
   update(
     @Param('id') id: string,
     @Body() updateLandDto: UpdateLandDto,
