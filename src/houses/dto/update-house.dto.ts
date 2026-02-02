@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateHouseDto } from './create-house.dto';
 import { ManageHouseImagesDto } from './manage-house-images.dto';
 import { IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class UpdateHouseDto extends PartialType(CreateHouseDto) {
   /**
@@ -12,5 +13,16 @@ export class UpdateHouseDto extends PartialType(CreateHouseDto) {
   @IsOptional()
   @ValidateNested()
   @Type(() => ManageHouseImagesDto)
+  @Transform(({ value }) => {
+    // If manageImages arrives as a string (from FormData), parse it
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  })
   manageImages?: ManageHouseImagesDto;
 }
