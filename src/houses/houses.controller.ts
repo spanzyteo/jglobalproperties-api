@@ -24,7 +24,7 @@ export class HousesController {
   constructor(private readonly housesService: HousesService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('images', 10))
+  @UseInterceptors(FilesInterceptor('images', 50))
   create(
     @Body() createHouseDto: CreateHouseDto,
     @UploadedFiles() files: Express.Multer.File[],

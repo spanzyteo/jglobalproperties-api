@@ -24,7 +24,7 @@ export class LandsController {
   constructor(private readonly landsService: LandsService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('images', 10))
+  @UseInterceptors(FilesInterceptor('images', 50))
   create(
     @Body() createLandDto: CreateLandDto,
     @UploadedFiles() files: Express.Multer.File[],
