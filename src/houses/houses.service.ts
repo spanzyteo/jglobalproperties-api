@@ -267,7 +267,7 @@ export class HousesService {
     }
 
     try {
-      const { units, imageDetails, title, ...houseData } = updateHouseDto;
+      const { units, title, manageImages, ...houseData } = updateHouseDto;
 
       let uniqueSlug: string | undefined;
       if (title && title !== existingHouse.title) {
@@ -294,28 +294,105 @@ export class HousesService {
         };
       }
 
-      // Handle images update (replace all existing images)
-      if (newImages.length > 0) {
-        // Delete old images from Cloudinary first
-        const oldPublicIds = existingHouse.images.map((img) => img.publicId);
-        if (oldPublicIds.length > 0) {
-          await this.cloudinaryService.deleteMultipleImages(oldPublicIds);
+      // Handle granular image management
+      if (manageImages || newImages.length > 0) {
+        const imagesToCreate: any[] = [];
+        const imagesToUpdate: any[] = [];
+        const imagesToDelete: string[] = [];
+
+        // Handle images to keep and update
+        if (manageImages?.keep && manageImages.keep.length > 0) {
+          for (const imgData of manageImages.keep) {
+            const existingImage = existingHouse.images.find(
+              (img) => img.id === imgData.id,
+            );
+            if (existingImage) {
+              // Queue for update if any metadata changed
+              if (
+                imgData.caption !== undefined ||
+                imgData.isPrimary !== undefined ||
+                imgData.order !== undefined
+              ) {
+                imagesToUpdate.push({
+                  where: { id: imgData.id },
+                  data: {
+                    ...(imgData.caption !== undefined && {
+                      caption: imgData.caption,
+                    }),
+                    ...(imgData.isPrimary !== undefined && {
+                      isPrimary: imgData.isPrimary,
+                    }),
+                    ...(imgData.order !== undefined && {
+                      order: imgData.order,
+                    }),
+                  },
+                });
+              }
+            }
+          }
         }
 
-        // Replace database image records
-        updateData.images = {
-          deleteMany: {}, // Delete all existing image records
-          create: newImages.map((img, index) => ({
-            url: img.url, // Now TypeScript knows this exists
-            publicId: img.public_id, // Now TypeScript knows this exists
-            caption: imageDetails?.[index]?.caption || null, // Caption from form
-            isPrimary: imageDetails?.[index]?.isPrimary || index === 0, // First image is primary by default
-            order: imageDetails?.[index]?.order || index, // Display order
-          })),
-        };
+        // Handle images to delete
+        if (manageImages?.delete && manageImages.delete.length > 0) {
+          const deleteIds: string[] = manageImages.delete;
+          const imagesToDeleteFromDb = existingHouse.images.filter((img) =>
+            deleteIds.includes(img.id),
+          );
+
+          // Delete from Cloudinary
+          const publicIdsToDelete = imagesToDeleteFromDb.map(
+            (img) => img.publicId,
+          );
+          if (publicIdsToDelete.length > 0) {
+            await this.cloudinaryService.deleteMultipleImages(
+              publicIdsToDelete,
+            );
+          }
+
+          imagesToDelete.push(...deleteIds);
+        }
+
+        // Handle new images being uploaded
+        if (newImages.length > 0) {
+          newImages.forEach((img, index) => {
+            const detailIndex = manageImages?.newImageDetails?.[index];
+            imagesToCreate.push({
+              url: img.url,
+              publicId: img.public_id,
+              caption: detailIndex?.caption || null,
+              isPrimary: detailIndex?.isPrimary || false,
+              order:
+                detailIndex?.order ??
+                Math.max(...existingHouse.images.map((i) => i.order), 0) +
+                  index +
+                  1,
+            });
+          });
+        }
+
+        // Apply image updates
+        if (imagesToDelete.length > 0) {
+          updateData.images = {
+            deleteMany: {
+              id: {
+                in: imagesToDelete,
+              },
+            },
+          };
+        }
+
+        // If we have creates or updates, we need to handle them separately after the main update
+        if (imagesToCreate.length > 0 || imagesToUpdate.length > 0) {
+          // We'll apply these after the main update since Prisma doesn't support mixed operations in one call
+          updateData._applyImageChanges = {
+            create: imagesToCreate,
+            update: imagesToUpdate,
+          };
+        }
       }
 
-      const house = await this.prisma.house.update({
+      // Perform the main update
+      const updateResult = await this.prisma.house.update({
         where: { id },
         data: updateData,
         include: {
@@ -331,13 +408,70 @@ export class HousesService {
         },
       });
 
+      let house = updateResult;
+
+      // Handle additional image operations that couldn't be done in the main update
+      if (updateData._applyImageChanges) {
+        const { create: imagesToCreate, update: imagesToUpdate } =
+          updateData._applyImageChanges;
+
+        // Create new images
+        if (imagesToCreate.length > 0) {
+          for (const imageData of imagesToCreate) {
+            await this.prisma.image.create({
+              data: {
+                ...imageData,
+                houseId: id,
+              },
+            });
+          }
+        }
+
+        // Update existing image metadata
+        if (imagesToUpdate.length > 0) {
+          for (const imageUpdate of imagesToUpdate) {
+            await this.prisma.image.update({
+              where: imageUpdate.where,
+              data: imageUpdate.data,
+            });
+          }
+        }
+
+        // Refetch to get updated images
+        const refetch = await this.prisma.house.findUnique({
+          where: { id },
+          include: {
+            units: true,
+            images: {
+              orderBy: { order: 'asc' },
+            },
+            _count: {
+              select: {
+                reviews: { where: { status: 'APPROVED' } },
+              },
+            },
+          },
+        });
+
+        if (!refetch) {
+          throw new NotFoundException('House not found after update');
+        }
+
+        house = refetch;
+      }
+
       return {
         success: true,
         message: 'House updated successfully',
         data: house,
       };
     } catch (error) {
-      if (error.code === 'P2002') {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException('Slug already exists');
       }
       throw error;
