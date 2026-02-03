@@ -354,6 +354,10 @@ export class HousesService {
 
         // Handle new images being uploaded
         if (newImages.length > 0) {
+          const maxOrder = Math.max(
+            ...existingHouse.images.map((i) => i.order),
+            0,
+          );
           newImages.forEach((img, index) => {
             const detailIndex = manageImages?.newImageDetails?.[index];
             imagesToCreate.push({
@@ -361,33 +365,37 @@ export class HousesService {
               publicId: img.public_id,
               caption: detailIndex?.caption || null,
               isPrimary: detailIndex?.isPrimary || false,
-              order:
-                detailIndex?.order ??
-                Math.max(...existingHouse.images.map((i) => i.order), 0) +
-                  index +
-                  1,
+              order: detailIndex?.order ?? maxOrder + index + 1,
             });
           });
         }
 
-        // Apply image updates
-        if (imagesToDelete.length > 0) {
-          updateData.images = {
-            deleteMany: {
+        // Build updateData.images with all operations (deletes, creates, updates)
+        if (
+          imagesToDelete.length > 0 ||
+          imagesToCreate.length > 0 ||
+          imagesToUpdate.length > 0
+        ) {
+          updateData.images = {};
+
+          // Always include delete operations
+          if (imagesToDelete.length > 0) {
+            updateData.images.deleteMany = {
               id: {
                 in: imagesToDelete,
               },
-            },
-          };
-        }
+            };
+          }
 
-        // If we have creates or updates, we need to handle them separately after the main update
-        if (imagesToCreate.length > 0 || imagesToUpdate.length > 0) {
-          // We'll apply these after the main update since Prisma doesn't support mixed operations in one call
-          updateData._applyImageChanges = {
-            create: imagesToCreate,
-            update: imagesToUpdate,
-          };
+          // Include create operations
+          if (imagesToCreate.length > 0) {
+            updateData.images.create = imagesToCreate;
+          }
+
+          // Handle updates separately since Prisma doesn't support nested updates in the main call
+          if (imagesToUpdate.length > 0) {
+            updateData._applyImageUpdates = imagesToUpdate;
+          }
         }
       }
 
@@ -410,31 +418,16 @@ export class HousesService {
 
       let house = updateResult;
 
-      // Handle additional image operations that couldn't be done in the main update
-      if (updateData._applyImageChanges) {
-        const { create: imagesToCreate, update: imagesToUpdate } =
-          updateData._applyImageChanges;
-
-        // Create new images
-        if (imagesToCreate.length > 0) {
-          for (const imageData of imagesToCreate) {
-            await this.prisma.image.create({
-              data: {
-                ...imageData,
-                houseId: id,
-              },
-            });
-          }
-        }
-
-        // Update existing image metadata
-        if (imagesToUpdate.length > 0) {
-          for (const imageUpdate of imagesToUpdate) {
-            await this.prisma.image.update({
-              where: imageUpdate.where,
-              data: imageUpdate.data,
-            });
-          }
+      // Handle additional image updates that couldn't be done in the main update
+      if (
+        updateData._applyImageUpdates &&
+        updateData._applyImageUpdates.length > 0
+      ) {
+        for (const imageUpdate of updateData._applyImageUpdates) {
+          await this.prisma.image.update({
+            where: imageUpdate.where,
+            data: imageUpdate.data,
+          });
         }
 
         // Refetch to get updated images
