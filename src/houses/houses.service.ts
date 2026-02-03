@@ -297,43 +297,33 @@ export class HousesService {
       // Handle granular image management
       if (manageImages || newImages.length > 0) {
         const imagesToCreate: any[] = [];
+        const imagesToUpdate: Array<{
+          id: string;
+          caption?: string;
+          isPrimary?: boolean;
+          order?: number;
+        }> = [];
 
-        // Handle images to keep and update
+        // Step 1: Collect images to keep/update
         if (manageImages?.keep && manageImages.keep.length > 0) {
           for (const imgData of manageImages.keep) {
             const existingImage = existingHouse.images.find(
               (img) => img.id === imgData.id,
             );
             if (existingImage) {
-              // Update caption, isPrimary, or order directly in the main update
+              // Queue for update if any metadata changed
               if (
                 imgData.caption !== undefined ||
                 imgData.isPrimary !== undefined ||
                 imgData.order !== undefined
               ) {
-                updateData.images = updateData.images || {};
-                updateData.images.update =
-                  (updateData.images.update as any[]) || [];
-                (updateData.images.update as any[]).push({
-                  where: { id: imgData.id },
-                  data: {
-                    ...(imgData.caption !== undefined && {
-                      caption: imgData.caption,
-                    }),
-                    ...(imgData.isPrimary !== undefined && {
-                      isPrimary: imgData.isPrimary,
-                    }),
-                    ...(imgData.order !== undefined && {
-                      order: imgData.order,
-                    }),
-                  },
-                });
+                imagesToUpdate.push(imgData);
               }
             }
           }
         }
 
-        // Handle images to delete - DELETE FIRST BEFORE MAIN UPDATE
+        // Step 2: DELETE FIRST - Delete from Cloudinary and Database
         if (manageImages?.delete && manageImages.delete.length > 0) {
           const deleteIds: string[] = manageImages.delete;
           const imagesToDeleteFromDb = existingHouse.images.filter((img) =>
@@ -350,7 +340,7 @@ export class HousesService {
             );
           }
 
-          // Delete from database BEFORE main update
+          // Delete from database
           await this.prisma.image.deleteMany({
             where: {
               id: {
@@ -360,11 +350,33 @@ export class HousesService {
           });
         }
 
-        // Handle new images being uploaded
+        // Step 3: UPDATE captions/metadata on existing images (separate calls)
+        if (imagesToUpdate.length > 0) {
+          for (const imgData of imagesToUpdate) {
+            await this.prisma.image.update({
+              where: { id: imgData.id },
+              data: {
+                ...(imgData.caption !== undefined && {
+                  caption: imgData.caption,
+                }),
+                ...(imgData.isPrimary !== undefined && {
+                  isPrimary: imgData.isPrimary,
+                }),
+                ...(imgData.order !== undefined && {
+                  order: imgData.order,
+                }),
+              },
+            });
+          }
+        }
+
+        // Step 4: CREATE new images with metadata
         if (newImages.length > 0) {
           const maxOrder = Math.max(
-            ...existingHouse.images.map((i) => i.order),
-            0,
+            ...existingHouse.images
+              .filter((img) => !manageImages?.delete?.includes(img.id))
+              .map((i) => i.order),
+            -1,
           );
           newImages.forEach((img, index) => {
             const detailIndex = manageImages?.newImageDetails?.[index];
@@ -377,7 +389,7 @@ export class HousesService {
             });
           });
 
-          // Add create operations to updateData
+          // Add new images to the house
           if (imagesToCreate.length > 0) {
             updateData.images = updateData.images || {};
             updateData.images.create = imagesToCreate;
