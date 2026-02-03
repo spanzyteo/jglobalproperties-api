@@ -297,8 +297,6 @@ export class HousesService {
       // Handle granular image management
       if (manageImages || newImages.length > 0) {
         const imagesToCreate: any[] = [];
-        const imagesToUpdate: any[] = [];
-        const imagesToDelete: string[] = [];
 
         // Handle images to keep and update
         if (manageImages?.keep && manageImages.keep.length > 0) {
@@ -307,13 +305,16 @@ export class HousesService {
               (img) => img.id === imgData.id,
             );
             if (existingImage) {
-              // Queue for update if any metadata changed
+              // Update caption, isPrimary, or order directly in the main update
               if (
                 imgData.caption !== undefined ||
                 imgData.isPrimary !== undefined ||
                 imgData.order !== undefined
               ) {
-                imagesToUpdate.push({
+                updateData.images = updateData.images || {};
+                updateData.images.update =
+                  (updateData.images.update as any[]) || [];
+                (updateData.images.update as any[]).push({
                   where: { id: imgData.id },
                   data: {
                     ...(imgData.caption !== undefined && {
@@ -332,7 +333,7 @@ export class HousesService {
           }
         }
 
-        // Handle images to delete
+        // Handle images to delete - DELETE FIRST BEFORE MAIN UPDATE
         if (manageImages?.delete && manageImages.delete.length > 0) {
           const deleteIds: string[] = manageImages.delete;
           const imagesToDeleteFromDb = existingHouse.images.filter((img) =>
@@ -349,7 +350,14 @@ export class HousesService {
             );
           }
 
-          imagesToDelete.push(...deleteIds);
+          // Delete from database BEFORE main update
+          await this.prisma.image.deleteMany({
+            where: {
+              id: {
+                in: deleteIds,
+              },
+            },
+          });
         }
 
         // Handle new images being uploaded
@@ -368,33 +376,11 @@ export class HousesService {
               order: detailIndex?.order ?? maxOrder + index + 1,
             });
           });
-        }
 
-        // Build updateData.images with all operations (deletes, creates, updates)
-        if (
-          imagesToDelete.length > 0 ||
-          imagesToCreate.length > 0 ||
-          imagesToUpdate.length > 0
-        ) {
-          updateData.images = {};
-
-          // Always include delete operations
-          if (imagesToDelete.length > 0) {
-            updateData.images.deleteMany = {
-              id: {
-                in: imagesToDelete,
-              },
-            };
-          }
-
-          // Include create operations
+          // Add create operations to updateData
           if (imagesToCreate.length > 0) {
+            updateData.images = updateData.images || {};
             updateData.images.create = imagesToCreate;
-          }
-
-          // Handle updates separately since Prisma doesn't support nested updates in the main call
-          if (imagesToUpdate.length > 0) {
-            updateData._applyImageUpdates = imagesToUpdate;
           }
         }
       }
@@ -416,42 +402,7 @@ export class HousesService {
         },
       });
 
-      let house = updateResult;
-
-      // Handle additional image updates that couldn't be done in the main update
-      if (
-        updateData._applyImageUpdates &&
-        updateData._applyImageUpdates.length > 0
-      ) {
-        for (const imageUpdate of updateData._applyImageUpdates) {
-          await this.prisma.image.update({
-            where: imageUpdate.where,
-            data: imageUpdate.data,
-          });
-        }
-
-        // Refetch to get updated images
-        const refetch = await this.prisma.house.findUnique({
-          where: { id },
-          include: {
-            units: true,
-            images: {
-              orderBy: { order: 'asc' },
-            },
-            _count: {
-              select: {
-                reviews: { where: { status: 'APPROVED' } },
-              },
-            },
-          },
-        });
-
-        if (!refetch) {
-          throw new NotFoundException('House not found after update');
-        }
-
-        house = refetch;
-      }
+      const house = updateResult;
 
       return {
         success: true,
