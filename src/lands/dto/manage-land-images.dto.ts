@@ -21,12 +21,18 @@ export class UpdateLandImageDataDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return value === 'true' || value === true;
+  })
   isPrimary?: boolean;
 
   @IsOptional()
   @IsInt()
-  @Transform(({ value }) => parseFloat(String(value)))
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return parseInt(String(value), 10);
+  })
   order?: number;
 }
 
@@ -40,12 +46,18 @@ export class NewLandImageDetailDto {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return value === 'true' || value === true;
+  })
   isPrimary?: boolean;
 
   @IsOptional()
   @IsInt()
-  @Transform(({ value }) => parseFloat(String(value)))
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return parseInt(String(value), 10);
+  })
   order?: number;
 }
 

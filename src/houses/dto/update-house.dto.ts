@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateHouseDto } from './create-house.dto';
 import { ManageHouseImagesDto } from './manage-house-images.dto';
 import { IsOptional, ValidateNested } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Transform, plainToInstance } from 'class-transformer';
 
 export class UpdateHouseDto extends PartialType(CreateHouseDto) {
   /**
@@ -12,16 +12,34 @@ export class UpdateHouseDto extends PartialType(CreateHouseDto) {
    */
   @IsOptional()
   @ValidateNested()
-  @Type(() => ManageHouseImagesDto)
   @Transform(({ value }) => {
-    // If manageImages arrives as a string (from FormData), parse it
-    if (typeof value === 'string') {
+    // If it's already a ManageHouseImagesDto instance, return as-is
+    if (value instanceof ManageHouseImagesDto) {
+      return value;
+    }
+
+    // If it's a string (from FormData), parse it
+    if (typeof value === 'string' && value) {
       try {
-        return JSON.parse(value);
+        const parsed = JSON.parse(value);
+        // Use plainToInstance to properly deserialize nested types
+        const instance = plainToInstance(ManageHouseImagesDto, parsed, {
+          enableImplicitConversion: true,
+        });
+        return instance;
       } catch {
         return value;
       }
     }
+
+    // If already an object but not an instance, deserialize it properly
+    if (typeof value === 'object' && value !== null) {
+      const instance = plainToInstance(ManageHouseImagesDto, value, {
+        enableImplicitConversion: true,
+      });
+      return instance;
+    }
+
     return value;
   })
   manageImages?: ManageHouseImagesDto;
