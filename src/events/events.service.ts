@@ -222,7 +222,7 @@ export class EventsService {
         }
 
         // Replace database image records
-        updateData.images = {
+        updateData.image = {
           deleteMany: {}, // Delete all existing image records
           create: newImages.map((img, index) => ({
             url: img.url, // Now TypeScript knows this exists
