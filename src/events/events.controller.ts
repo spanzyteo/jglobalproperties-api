@@ -27,7 +27,7 @@ export class EventsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FilesInterceptor('images', 1))
+  @UseInterceptors(FilesInterceptor('image', 1))
   async create(
     @Body() createEventDto: CreateEventDto,
     @UploadedFiles() files: Express.Multer.File[],
