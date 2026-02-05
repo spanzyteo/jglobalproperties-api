@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -24,6 +25,11 @@ export class EventsService {
   async create(createEventDto: CreateEventDto, files?: Express.Multer.File[]) {
     try {
       const { imageDetails, date, ...eventData } = createEventDto;
+
+      // Validate that only one image is provided
+      if (files && files.length > 1) {
+        throw new BadRequestException('You can only add one image to an event');
+      }
 
       let uploadedImages: UploadedImage[] = [];
       if (files && files.length > 0) {
@@ -187,6 +193,11 @@ export class EventsService {
 
     if (!existingEvent) {
       throw new NotFoundException('Event not found');
+    }
+
+    // Validate that only one image is provided
+    if (files && files.length > 1) {
+      throw new BadRequestException('You can only add one image to an event');
     }
 
     try {

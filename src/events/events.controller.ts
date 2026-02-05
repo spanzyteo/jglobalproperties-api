@@ -12,7 +12,9 @@ import {
   HttpStatus,
   UploadedFiles,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -25,6 +27,7 @@ export class EventsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FilesInterceptor('images', 1))
   async create(
     @Body() createEventDto: CreateEventDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -46,6 +49,7 @@ export class EventsController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FilesInterceptor('image', 1))
   async update(
     @Param('id') id: string,
     @Body() updateEventDto: UpdateEventDto,
