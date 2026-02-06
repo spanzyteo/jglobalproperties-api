@@ -41,6 +41,12 @@ export class EventsController {
     return this.eventsService.findAll(query);
   }
 
+  @Get('slug/:slug')
+  @HttpCode(HttpStatus.OK)
+  async findBySlug(@Param('slug') slug: string) {
+    return this.eventsService.findBySlug(slug);
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: string) {

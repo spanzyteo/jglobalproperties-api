@@ -22,14 +22,50 @@ export class EventsService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+      .replace(/[\s_-]+/g, '-') // Replace spaces, underscores, and multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+  }
+
+  private async ensureUniqueSlug(
+    baseSlug: string,
+    excludeId?: string,
+  ): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existing = await this.prisma.event.findUnique({
+        where: { slug },
+        select: { id: true },
+      });
+
+      // If no existing event with this slug, or it's the same event we're updating
+      if (!existing || (excludeId && existing.id === excludeId)) {
+        return slug;
+      }
+
+      // If slug exists, append counter and try again
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+
   async create(createEventDto: CreateEventDto, files?: Express.Multer.File[]) {
     try {
-      const { imageDetails, date, ...eventData } = createEventDto;
+      const { imageDetails, date, title, ...eventData } = createEventDto;
 
       // Validate that only one image is provided
       if (files && files.length > 1) {
         throw new BadRequestException('You can only add one image to an event');
       }
+
+      const baseSlug = this.generateSlug(title);
+      const uniqueSlug = await this.ensureUniqueSlug(baseSlug);
 
       let uploadedImages: UploadedImage[] = [];
       if (files && files.length > 0) {
@@ -44,6 +80,8 @@ export class EventsService {
       const event = await this.prisma.event.create({
         data: {
           ...eventData,
+          title,
+          slug: uniqueSlug,
           date,
           isPast,
           image:
@@ -181,6 +219,26 @@ export class EventsService {
     };
   }
 
+  async findBySlug(slug: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: {
+        image: {
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    return {
+      success: true,
+      data: event,
+    };
+  }
+
   async update(
     id: string,
     updateEventDto: UpdateEventDto,
@@ -201,7 +259,13 @@ export class EventsService {
     }
 
     try {
-      const { imageDetails, date, ...eventData } = updateEventDto;
+      const { imageDetails, date, title, ...eventData } = updateEventDto;
+
+      let uniqueSlug: string | undefined;
+      if (title && title !== existingEvent.title) {
+        const baseSlug = this.generateSlug(title);
+        uniqueSlug = await this.ensureUniqueSlug(baseSlug, id);
+      }
 
       let newImages: UploadedImage[] = [];
       if (files && files.length > 0) {
@@ -210,6 +274,8 @@ export class EventsService {
 
       const updateData: any = {
         ...eventData,
+        ...(title && { title }),
+        ...(uniqueSlug && { slug: uniqueSlug }),
         ...(date && { date }),
       };
 
