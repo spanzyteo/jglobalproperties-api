@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable no-useless-catch */
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -26,9 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // First try to extract from Authorization header
         ExtractJwt.fromAuthHeaderAsBearerToken(),
-        // If notfound, try to extract form cookies
         (request: Request): string | null => {
           const req = request as RequestWithCookies;
           const token = req.cookies?.access_token;
@@ -44,8 +43,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     try {
       const user = await this.authService.validateUser(payload.sub);
       return user;
-    } catch {
-      throw new UnauthorizedException('Invalid token');
+    } catch (error: any) {
+      throw error;
     }
   }
 }
