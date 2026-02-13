@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
@@ -35,7 +33,7 @@ export class EmailService {
   private async sendEmail(options: SendEmailOptions): Promise<boolean> {
     try {
       const { data, error } = await this.resend.emails.send({
-        from: 'JGlobal Properties <newsletter@jglobalproperties.com>',
+        from: 'JGlobal Properties <newsletter@app.jglobalproperties.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -45,7 +43,6 @@ export class EmailService {
         this.logger.error(`Failed to send email to ${options.to}:`, error);
         return false;
       }
-
       this.logger.log(`Email sent to ${options.to}: ${data?.id}`);
       return true;
     } catch (error) {
@@ -168,7 +165,6 @@ export class EmailService {
     // Send in batches to respect rate limits
     for (let i = 0; i < subscribers.length; i += this.batchSize) {
       const batch = subscribers.slice(i, i + this.batchSize);
-
       for (const subscriber of batch) {
         const unsubscribeUrl = `${this.configService.get('FRONTEND_URL')}/newsletter/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
 
@@ -257,7 +253,6 @@ export class EmailService {
         );
       }
     }
-
     this.logger.log(
       `Campaign complete: ${result.sentCount} sent, ${result.failedCount} failed`,
     );
