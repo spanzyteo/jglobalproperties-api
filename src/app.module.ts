@@ -14,6 +14,8 @@ import { TagsModule } from './tags/tags.module';
 import { AuthModule } from './auth/auth.module';
 import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { MediaModule } from './media/media.module';
     AuthModule,
     EventsModule,
     MediaModule,
+    NewsletterModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

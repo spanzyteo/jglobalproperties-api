@@ -346,3 +346,72 @@ enum BlogCommentStatus {
   REJECTED
   SPAM
 }
+
+// Newsletter Models
+
+model NewsletterSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String?
+  isActive        Boolean  @default(true)
+  
+  // Subscription tracking
+  subscribedAt    DateTime @default(now())
+  unsubscribedAt  DateTime?
+  
+  // Source tracking
+  source          String?  // 'homepage_modal', 'footer', etc.
+  ipAddress       String?
+  userAgent       String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("newsletter_subscribers")
+}
+
+model NewsletterCampaign {
+  id              String            @id @default(cuid())
+  subject         String
+  content         String            @db.Text // HTML content from TipTap
+  
+  // Sending stats
+  status          CampaignStatus    @default(DRAFT)
+  totalRecipients Int               @default(0)
+  sentCount       Int               @default(0)
+  failedCount     Int               @default(0)
+  
+  // Sending details
+  sentBy          String?           // Admin user ID
+  sentAt          DateTime?
+  scheduledFor    DateTime?
+  
+  // Failed emails
+  failedEmails    String[]          // Array of failed email addresses
+  errorLog        String?           @db.Text
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@map("newsletter_campaigns")
+}
+
+model NewsletterActivity {
+  id              String   @id @default(cuid())
+  email           String
+  action          String   // 'subscribed', 'unsubscribed', 'campaign_sent'
+  details         String?  @db.Text
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([email])
+  @@map("newsletter_activity")
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+  PARTIALLY_SENT
+}
