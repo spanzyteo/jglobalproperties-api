@@ -97,8 +97,7 @@ export class EmailService {
                 <li>Special offers and announcements</li>
               </ul>
 
-              <div style="text-align: center; margin: 30px 0;">
-                
+              <div style="text-align: center; margin: 30px 0;"
                   href="${this.configService.get('FRONTEND_URL')}"
                   style="display: inline-block; background-color: #941A1A; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;"
                 >
