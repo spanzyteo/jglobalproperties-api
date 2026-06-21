@@ -16,6 +16,7 @@ import { EventsModule } from './events/events.module';
 import { MediaModule } from './media/media.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { EmailModule } from './email/email.module';
+import { CronJobModule } from './cron-job/cron-job.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { EmailModule } from './email/email.module';
     MediaModule,
     NewsletterModule,
     EmailModule,
+    CronJobModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
