@@ -20,17 +20,17 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Enable CORS with credentials for cookies
-  // app.enableCors({
-  //   origin: [
-  //     'http://localhost:3000',
-  //     'http://localhost:3001',
-  //     'https://jglobalproperties.vercel.app',
-  //     'https://jglobalproperties.com',
-  //   ], // Add your frontend URLs
-  //   credentials: true,
-  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  //   allowedHeaders: ['Content-Type', 'Authorization'],
-  // });
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://jglobalproperties.vercel.app',
+      'https://jglobalproperties.com',
+    ], // Add your frontend URLs
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
